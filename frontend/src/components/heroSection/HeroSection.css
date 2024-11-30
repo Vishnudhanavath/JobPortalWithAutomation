@@ -1,0 +1,31 @@
+/* 
+.bgContainer {
+        padding: 20px; 
+        box-sizing: border-box;
+        width: 100%; 
+        display: flex;
+        /* align-items: center; */
+        /* justify-content: center;  */
+        /* flex-direction: row; 
+}
+.headingContainer {
+    text-align: center; 
+    margin: 0; 
+    padding: 1rem; 
+  }
+.herosectionImage{
+    width: 730px;
+    height: 500px;
+}
+.description{
+    font-family:roboto;
+    font-size: 15px;
+    font-weight: 400;
+    font-style: normal;
+} */
+
+.bgContainer{
+      background-image: url("/assets/heroBg.png");
+      background-size: cover;
+      height: 100vh;
+}
