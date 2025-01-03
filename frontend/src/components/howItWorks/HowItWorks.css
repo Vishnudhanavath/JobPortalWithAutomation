@@ -1,0 +1,59 @@
+.howitWorks-bgcontainer{
+    width: 90%;
+    margin: 10px auto;
+    text-align: center;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    
+}
+
+.howitWorksHeading{
+    font-size: 2.7rem;
+    font-family: sans-serif;
+    margin-bottom: 20px;
+    color: #333;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.working-boy-image{
+    width: 30rem;
+}
+
+
+.steps-container{
+    list-style: none;
+    font-family: sans-serif;
+    font-size: 14px;
+}
+
+
+.howitWorks-steps-container{
+    display: flex;
+    flex-direction: row;
+    text-align: center;
+    justify-content: center;
+
+}
+
+.step-roundup {
+    display: inline-flex; 
+    justify-content: center;
+    padding: 4px;
+    align-items: center;
+    width: 100px;
+    height: 100px; 
+    border: 2px solid #000; 
+    border-radius: 50%;
+    margin-right: 8px; 
+    margin-top: 8px;
+    
+    background-color: #f9f9f9;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2); 
+    font-family: sans-serif;
+    font-weight: bold;
+    font-size: 14px; 
+}
+  

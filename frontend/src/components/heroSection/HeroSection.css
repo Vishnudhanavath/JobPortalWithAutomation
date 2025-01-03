@@ -3,7 +3,9 @@
     flex-direction: row;
     align-items: center;
     justify-content: center;
-    padding:30px;
+    padding-left:30px;
+    padding-right:30px;
+    padding-top:10px;
 }
 .heroImage{
     max-width:100%;
@@ -13,18 +15,21 @@
 .heroHeading{
     font-family:sans-serif;
     font-size: 40px;
-    font-weight: 700;
+    font-weight: 700;   
     padding-bottom:30px;
 }
 .HeroDescription{
     max-width: 900px;
-    /* text-align: center; */
-    background:  #dfdf07;
+    background:#dfdf07;
     color: #111;
     padding: 50px 75px;
     border-radius: 35px;
     letter-spacing: 1px;
-    font-weight: 500;
+    font-family:'Roboto',sans-serif;
+    /* font-weight: 500; */
     transition: 0.3s;
+    font-size: 14px;
 }
+
+
 
