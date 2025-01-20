@@ -1,0 +1,93 @@
+
+.login__authPage {
+    background-color: #f5f5f5;
+    padding: 20px;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .login__container {
+    width: 100%;
+    max-width: 400px;
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .login__header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .login__header h3 {
+    font-size: 24px;
+    color: #333;
+  }
+  
+  .login__inputTag {
+    margin-bottom: 15px;
+    margin-top: 10px;
+  }
+  
+  .login__inputWithIcon {
+    position: relative;
+    padding-top:10px;
+  }
+  
+  .login__inputWithIcon input {
+    width: 100%;
+    padding: 10px 40px 10px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+  }
+  
+  .login__inputWithIcon select {
+    width: 100%;
+    padding: 10px 40px 10px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+  }
+  
+  .login__inputWithIcon svg {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  
+  /* Button for submitting the form */
+  .login__button {
+    width: 100%;
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  
+  .login__button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+  
+  /* Register link styling */
+  .login__registerLink {
+    display: block;
+    text-align: center;
+    margin-top: 15px;
+    color: #007bff;
+    text-decoration: none;
+  }
+  
+  .login__registerLink:hover {
+    text-decoration: underline;
+  }
+
+  

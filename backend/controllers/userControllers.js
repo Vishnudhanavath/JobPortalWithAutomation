@@ -196,12 +196,11 @@ export const updateProfile = async(req,res,next) =>{
                     await cloudinary.uploader.destroy(resumeId);
                 }
                     // creates the newResume
-                const newResume = await cloudinary.uploader.upload(resume.tempFilePath,{
-                    folder:"Resume"
-                });
+              const cloudinaryResponse = await cloudinary.uploader.upload(resume.tempFilePath, { folder: "Resume" });
+
                 newUserDetails.resume = {
-                    public_id: newResume.public_id,
-                    url: newResume.secure_url,
+                    public_id: cloudinaryResponse.public_id,
+                    url: cloudinaryResponse.secure_url,
                 };
         }
 
