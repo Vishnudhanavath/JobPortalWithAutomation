@@ -5,9 +5,9 @@ import { clearAllUserErrors, register } from "../../redux/slices/userSlice";
 import { toast, ToastContainer } from "react-toastify";
 import { FaAddressBook, FaPencilAlt, FaRegUser } from "react-icons/fa";
 import { FaPhoneFlip } from "react-icons/fa6";
-import { MdCategory, MdOutlineMailOutline } from "react-icons/md";
+import { MdOutlineMailOutline } from "react-icons/md";
 import { RiLock2Fill } from "react-icons/ri";
-import "react-toastify/dist/ReactToastify.css"; // Import the toastify CSS
+import "react-toastify/dist/ReactToastify.css";
 import "./Register.css";
 
 const Register = () => {
@@ -20,7 +20,7 @@ const Register = () => {
   const [firstNiche, setFirstNiche] = useState("");
   const [secondNiche, setSecondNiche] = useState("");
   const [thirdNiche, setThirdNiche] = useState("");
-  const [resume, setResume] = useState("");
+  const [resume, setResume] = useState(null);
 
   const nichesArray = [
     "Software Development",
@@ -57,9 +57,9 @@ const Register = () => {
   const dispatch = useDispatch();
   const navigateTo = useNavigate();
 
-  const handleRegsiter = (e) => {
+  const handleRegister = (e) => {
     e.preventDefault();
-  
+
     if (!role) {
       toast.error("Please select a role.", { position: "bottom-right" });
       return;
@@ -76,15 +76,17 @@ const Register = () => {
       toast.error("Please enter a password.", { position: "bottom-right" });
       return;
     }
-  
+
+    
+
     const formData = new FormData();
     formData.append("role", role);
-    formData.append("fullName", name);
+    formData.append("name", name);
     formData.append("email", email);
-    formData.append("phoneNumber", phone);
+    formData.append("phone", phone);
     formData.append("address", address);
     formData.append("password", password);
-  
+
     if (role === "Job Seeker") {
       if (!firstNiche || !secondNiche || !thirdNiche || !resume) {
         if (!firstNiche) toast.error("Please select your first niche.", { position: "bottom-right" });
@@ -98,18 +100,29 @@ const Register = () => {
       formData.append("thirdNiche", thirdNiche);
       formData.append("resume", resume);
     }
+
     dispatch(register(formData));
   };
-  
+
   useEffect(() => {
     if (error) {
-      toast.error(error, { position: "bottom-right" });
+
+      const userFriendlyError =
+      error === "Unauthorized"
+        ? "Invalid email or password. Please try again."
+        : error;
+
+        toast.error(userFriendlyError, {
+          position: "bottom-right",
+        });
+      
+      // toast.error(error, { position: "bottom-right" });
       dispatch(clearAllUserErrors());
     }
     if (isAuthenticated) {
-      navigateTo("/"); 
+      navigateTo("/");  // Redirect to home page after successful login
     }
-  }, [dispatch, error, loading, isAuthenticated, message]);
+  }, [dispatch, error, isAuthenticated, navigateTo]);
 
   return (
     <div>
@@ -118,28 +131,25 @@ const Register = () => {
           <div className="header">
             <h3>Create a new account</h3>
           </div>
-          <form onSubmit={handleRegsiter}>
+          <form onSubmit={handleRegister}>
             <div className="registerCard">
               <div className="inputTag">
-              <div className="logIn-style">
-                <label className="register-label">Register As</label>
-                <FaRegUser />
-              </div>
-                <select
-                  value={role}
-                  onChange={(e) => setRole(e.target.value)}
-                >
+                <div className="logIn-style">
+                  <label className="register-label">Register As</label>
+                  <FaRegUser />
+                </div>
+                <select value={role} onChange={(e) => setRole(e.target.value)}>
                   <option value="">Select Role</option>
-                  <option value="recruiter">recruiter</option>
+                  <option value="Recruiter">Recruiter</option>
                   <option value="Job Seeker">Job Seeker</option>
                 </select>
               </div>
 
               <div className="inputTag">
-              <div className="logIn-style">
-                <label className="register-label">Name</label>
-                <FaPencilAlt />
-              </div>
+                <div className="logIn-style">
+                  <label className="register-label">Name</label>
+                  <FaPencilAlt />
+                </div>
                 <input
                   type="text"
                   placeholder="Your Name"
@@ -149,10 +159,10 @@ const Register = () => {
               </div>
 
               <div className="inputTag">
-              <div className="logIn-style">
-                <label className="register-label">Email Address</label>
-                <MdOutlineMailOutline />
-              </div>
+                <div className="logIn-style">
+                  <label className="register-label">Email Address</label>
+                  <MdOutlineMailOutline />
+                </div>
                 <input
                   type="email"
                   placeholder="youremail@gmail.com"
@@ -162,10 +172,23 @@ const Register = () => {
               </div>
 
               <div className="inputTag">
-              <div className="logIn-style">
-              <label className="register-label">Phone Number</label>
-              <FaPhoneFlip />
+                <div className="logIn-style">
+                  <label className="register-label">Password</label>
+                  <RiLock2Fill />
+                </div>
+                <input
+                  type="password"
+                  placeholder="Your Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
               </div>
+
+              <div className="inputTag">
+                <div className="logIn-style">
+                  <label className="register-label">Phone Number</label>
+                  <FaPhoneFlip />
+                </div>
                 <input
                   type="number"
                   placeholder="111-222-333"
@@ -185,19 +208,6 @@ const Register = () => {
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                 />
-                </div>
-
-                <div className="wrapper">
-                <div className="inputTag">
-                  <label>Resume</label>
-                  <div>
-                    <input
-                      type="file"
-                      onChange={resumeHandler}
-                      style={{ border: "none" }}
-                    />
-                  </div>
-                </div>
               </div>
 
               {role === "Job Seeker" && (
@@ -230,7 +240,6 @@ const Register = () => {
                         </option>
                       ))}
                     </select>
-
                   </div>
 
                   <div className="inputTag">
@@ -246,7 +255,6 @@ const Register = () => {
                         </option>
                       ))}
                     </select>
-
                   </div>
 
                   <div className="inputTag">
@@ -267,6 +275,8 @@ const Register = () => {
           </form>
         </div>
       </section>
+
+      {/* Ensure the ToastContainer is globally placed here */}
       <ToastContainer />
     </div>
   );

@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 const userSchema = new mongoose.Schema({
-    fullName:{
+    name:{
         type:String,
         required:true,
         minLength: [3, "Name must cotain at least 3 characters."],
@@ -12,7 +12,7 @@ const userSchema = new mongoose.Schema({
         required:true,
         unique:true
     },
-    phoneNumber:{
+    phone:{
         type:String,
         required:true
     },
@@ -23,7 +23,7 @@ const userSchema = new mongoose.Schema({
     role:{
         type:String,
         required:true,
-        enum:['job Seeker','recruiter']
+        enum:['Job Seeker','Recruiter']
     },
     password:{
         type:String,

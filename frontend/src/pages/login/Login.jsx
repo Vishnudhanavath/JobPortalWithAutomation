@@ -6,8 +6,8 @@ import { toast, ToastContainer } from "react-toastify";
 import { FaRegUser } from "react-icons/fa";
 import { MdOutlineMailOutline } from "react-icons/md";
 import { RiLock2Fill } from "react-icons/ri";
-import "react-toastify/dist/ReactToastify.css"; // Import Toastify CSS
-import "./login.css"; // Import the global login.css
+import "react-toastify/dist/ReactToastify.css";
+import "./Login.css";
 
 const Login = () => {
   const [role, setRole] = useState("");
@@ -24,10 +24,10 @@ const Login = () => {
   const handleLogin = (e) => {
     e.preventDefault();
 
-    // Validate the form inputs
+    // Form Validation
     if (!role) {
       toast.error("Please select your role.", {
-        position: "bottom-right", // Position of the toast message
+        position: "bottom-right",
       });
       return;
     }
@@ -38,7 +38,6 @@ const Login = () => {
       return;
     }
 
-    // Validate email format
     const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!emailPattern.test(email)) {
       toast.error("Please enter a valid email address.", {
@@ -47,25 +46,27 @@ const Login = () => {
       return;
     }
 
-    // Proceed with the login if everything is fine
-    const formData = new FormData();
-    formData.append("role", role);
-    formData.append("email", email);
-    formData.append("password", password);
-    dispatch(login(formData));
+    // Dispatch the login action
+    dispatch(login({ role, email, password }));
   };
 
   useEffect(() => {
     if (error) {
-      toast.error(error, {
-        position: "bottom-right",
-      });
-      dispatch(clearAllUserErrors());
+      const userFriendlyError =
+      error === "Unauthorized"
+        ? "Invalid email or password. Please try again."
+        : error;
+        toast.error(userFriendlyError, {
+          position: "bottom-right",
+        });
+        
+      dispatch(clearAllUserErrors()); 
     }
+
     if (isAuthenticated) {
-      navigateTo("/"); // Redirect to home after login
+      navigateTo("/"); 
     }
-  }, [dispatch, error, loading, isAuthenticated]);
+  }, [dispatch, error, isAuthenticated, navigateTo]);
 
   return (
     <div className="login__authPage">
@@ -77,10 +78,16 @@ const Login = () => {
           <div className="login__inputTag">
             <label className="login-label">Login As</label>
             <div className="login__inputWithIcon">
-              <select value={role} onChange={(e) => setRole(e.target.value)}>
-                <option value="">Select Role</option>
-                <option value="recruiter">Login as an Employer</option>
-                <option value="Job Seeker">Login as a Job Seeker</option>
+              <select
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                required
+              >
+                <option value="" disabled>
+                  Select Role
+                </option>
+                <option value="Recruiter">Recruiter</option>
+                <option value="Job Seeker">Job Seeker</option>
               </select>
               <FaRegUser />
             </div>
@@ -94,6 +101,7 @@ const Login = () => {
                 placeholder="youremail@gmail.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                required
               />
               <MdOutlineMailOutline />
             </div>
@@ -107,13 +115,14 @@ const Login = () => {
                 placeholder="Your Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                required
               />
               <RiLock2Fill />
             </div>
           </div>
 
           <button type="submit" className="login__button" disabled={loading}>
-            Login
+            {loading ? "Logging in..." : "Login"}
           </button>
           <Link to={"/register"} className="login__registerLink">
             Register Now
@@ -121,7 +130,7 @@ const Login = () => {
         </form>
       </section>
 
-      {/* Toast container at the bottom-right */}
+      {/* Toast Notifications */}
       <ToastContainer
         position="bottom-right"
         autoClose={5000}

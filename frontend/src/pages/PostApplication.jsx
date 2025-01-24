@@ -125,7 +125,7 @@ const PostApplication = () => {
             />
           </div>
           {user && user.role === "Job Seeker" && (
-            <>
+            <div>
               <div>
                 <label>Coverletter</label>
                 <textarea
@@ -138,7 +138,7 @@ const PostApplication = () => {
                 <label>Resume</label>
                 <input type="file" onChange={resumeHandler} />
               </div>
-            </>
+            </div>
           )}
 
           {isAuthenticated && user.role === "Job Seeker" && (

@@ -13,7 +13,7 @@ export const sendEmail = async({email,subject,message}) =>{
     const options = {
         from: process.env.SMPT_MAIL,
         to: email,
-        subject: subject,
+        subject: subject,   
         text: message
     }
     await transport.sendMail(options);

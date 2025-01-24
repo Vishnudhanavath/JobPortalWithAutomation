@@ -1,286 +1,289 @@
 import { User } from "../models/userSchema.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import {v2 as cloudinary} from "cloudinary"
+import { v2 as cloudinary } from "cloudinary";
 
+// Register
+export const register = async (req, res, next) => {
+    try {
+        const {
+            name,
+            email,
+            phone,
+            address,
+            password,
+            role,
+            firstNiche,
+            secondNiche,
+            thirdNiche,
+        } = req.body;
 
-//register
-export const register = async(req,res,next) =>{
-    try{
-        const {fullName, email,phoneNumber,address,role,password,firstNiche,secondNiche,thirdNiche} = req.body;
-        console.log(req.body);
-        if(!fullName || !email || !phoneNumber || !password || !role || !address){
+        // Validation: Required fields
+        if (!name || !email || !phone || !address || !password || !role) {
             return res.status(400).json({
-                message:"All fields are required",
-                success:false
+                message: "All fields are required",
+                success: false,
             });
         }
-        if(role === "job Seeker" && (!firstNiche || !secondNiche || !thirdNiche)){
+        if (role === "Job Seeker" && (!firstNiche || !secondNiche || !thirdNiche)) {
             return res.status(400).json({
-                message:"Please provide your preferried niches.",
-                success:false
+                message: "Please provide your preferred job niches.",
+                success: false,
             });
         }
 
-        const userExist = await User.findOne({email});
-        if(userExist){
+        // Check if the user already exists
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
             return res.status(400).json({
-                message:"User is already exists with this email.",
-                success:false
+                message: "Email is already registered.",
+                success: false,
             });
         }
-        // bcrypting password;
-        const hashedPassword = await bcrypt.hash(password,10);
-        console.log(password);
-        console.log(hashedPassword);
-        const userDetails = {fullName,
-             email,
-             phoneNumber,
-             address,
-             role,
-             password:hashedPassword,
-             niches:{
+
+        // Hash password
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Prepare user details
+        const userData = {
+            name,
+            email,
+            phone,
+            address,
+            password: hashedPassword,
+            role,
+            niches: {
                 firstNiche,
                 secondNiche,
-                thirdNiche
-             }
-            };
-        if(req.files && req.files.resume){
-            const  {resume} = req.files;
-            if(resume){
-                try {
-                    const cloudinaryResponse = await cloudinary.uploader.upload(resume.tempFilePath,
-                            {folder:"Resume"}
-                    );
-                    if(cloudinaryResponse || cloudinaryResponse.error){
-                        return res.status(500).json({
-                            message:"Failed to upload resume to cloud",
-                            success:false
-                        });
-                    }
-                    userDetails.resume = {
-                        public_id: cloudinaryResponse.public_id,
-                        url: cloudinaryResponse.secure_url,
-                    };
+                thirdNiche,
+            },
+        };
 
-                } catch (error) {
+        // Resume Upload
+        if (req.files?.resume) {
+            try {
+                const cloudinaryResponse = await cloudinary.uploader.upload(req.files.resume.tempFilePath, {
+                    folder: "Job_Seekers_Resume",
+                });
+
+                // Check if the response from Cloudinary is valid
+                if (!cloudinaryResponse || cloudinaryResponse.error) {
                     return res.status(500).json({
-                        message:"Failed to upload resume",
-                        success:false
-                    })
+                        message: "Failed to upload resume to cloud",
+                        success: false,
+                    });
                 }
+
+                userData.resume = {
+                    public_id: cloudinaryResponse.public_id,
+                    url: cloudinaryResponse.secure_url,
+                };
+            } catch (error) {
+                console.error("Resume upload error:", error);
+                return res.status(500).json({
+                    message: "Failed to upload resume",
+                    success: false,
+                });
             }
         }
-        const user = await User.create(userDetails);
-        return res.status(201).json({
-            message:"Account is created Successfully.",
-            success:true
-        })
 
-    }catch(error){
-        next(error);
-    }
+        // Create user
+        const user = await User.create(userData);
 
-}
-
-//login
-export const login = async (req, res, next) => {
-    try {
-        const { email, password, role } = req.body;
-        if (!email || !password || !role) {
-            return res.status(400).json({
-                message: "Email, password, and role are required",
-                success: false
-            });
-        }
-        const user = await User.findOne({ email });
-        if (!user) {
-            return res.status(400).json({
-                message: "Invalid email",
-                success: false
-            });
-        }
-
-        // Log for debugging
-        // console.log("Entered password:", password);
-        // console.log("Stored hashed password:", user.password);
-
-        const isPasswordMatch = await bcrypt.compare(password, user.password);
-
-        if (!isPasswordMatch) {
-            return res.status(400).json({
-                message: "Invalid password",
-                success: false
-            });
-        }
-
-        // Check if role matches
-        if (role !== user.role) {
-            return res.status(400).json({
-                message: "Account doesn't exist with the specified role",
-                success: false
-            });
-        }
-
-        const tokenData = {
-            userId: user._id,
-            role:user.role,
-            email: user.email
-        };
-        const token = jwt.sign(tokenData, process.env.SECRET_KEY, { expiresIn: '7d' });
-
-        const userResponse = {
-            _id: user._id,
-            fullName: user.fullName,
-            email: user.email,
-            phoneNumber: user.phoneNumber,
-            role: user.role
-        };
-
-        return res.status(200).cookie("token", token, {
-            maxAge: 24 * 60 * 60 * 1000,
-            httpOnly: true,
-            sameSite: 'strict'
-        }).json({
-            message: `Welcome back ${user.fullName}`,
-            user: userResponse,
-            success: true
+        // Send token (assuming sendToken function exists)
+        const token = jwt.sign({ id: user._id }, process.env.SECRET_KEY, { expiresIn: "30d" });
+        res.status(201).json({
+            message: "User registered successfully.",
+            success: true,
+            token,
         });
 
     } catch (error) {
-        console.error("Login error: ", error);
-        return res.status(500).json({
-            message: "An error occurred while logging in",
-            success: false
-        });
-    }
-};
-//logOut
-export const logout = async(req,res) =>{
-    try{
-        return res.status(200).cookie("token","",{maxAge: 0}).json({
-            message:"loged out successfully",
-            success:true
-        });
-    }catch(error){
-        console.log(error);
+        console.error("Register error:", error);
+        next(error);
     }
 };
 
-//updateProfile details;
-export const updateProfile = async(req,res,next) =>{
+// Login
+export const login = async (req, res, next) => {
+    const { role, email, password } = req.body;
+    if (!role || !email || !password) {
+        return res.status(400).json({
+            message: "Email, password, and role are required.",
+            success: false,
+        });
+    }
+
     try {
-        const { fullName, email, phoneNumber, bio, skills, address, role, firstNiche, secondNiche, thirdNiche } = req.body;
+        const user = await User.findOne({ email }).select("+password");
+        if (!user) {
+            return res.status(400).json({
+                message: "Invalid email or password.",
+                success: false,
+            });
+        }
 
-        const newUserDetails = {
-            fullName,
+        const isPasswordMatched = await bcrypt.compare(password, user.password);
+        if (!isPasswordMatched) {
+            return res.status(400).json({
+                message: "Invalid email or password.",
+                success: false,
+            });
+        }
+
+        if (user.role !== role) {
+            return res.status(400).json({
+                message: "Invalid user role.",
+                success: false,
+            });
+        }
+
+        // Send token
+        const token = jwt.sign({ id: user._id }, process.env.SECRET_KEY, { expiresIn: "30d" });
+        res.status(200).json({
+            message: "User logged in successfully.",
+            success: true,
+            token,
+        });
+
+    } catch (error) {
+        console.error("Login error:", error);
+        next(error);
+    }
+};
+
+// Logout
+export const logout = async (req, res, next) => {
+    try {
+        res.status(200).cookie("token", "", {
+            expires: new Date(Date.now()),
+            httpOnly: true,
+        }).json({
+            success: true,
+            message: "Logged out successfully.",
+        });
+    } catch (error) {
+        console.error("Logout error:", error);
+        next(error);
+    }
+};
+
+// Update Profile
+export const updateProfile = async (req, res, next) => {
+    try {
+        const { name, email, phone, address, firstNiche, secondNiche, thirdNiche } = req.body;
+
+        // Validation for job seekers
+        if (req.user.role === "Job Seeker" && (!firstNiche || !secondNiche || !thirdNiche)) {
+            return res.status(400).json({
+                message: "Please provide all preferred job niches.",
+                success: false,
+            });
+        }
+
+        const newUserData = {
+            name,
             email,
-            phoneNumber,
-            "profile.bio": bio,
-            "profile.skills": skills ? skills.split(",") : undefined,
+            phone,
             address,
             niches: { firstNiche, secondNiche, thirdNiche },
         };
 
-        if(role === "job Seeker" && (!firstNiche|| !secondNiche || !thirdNiche)){
-            return res.status(400).json({
-                message:"Please provide all the job niches",
-                success:false
-            })
-        }
-        
-        if(req.files && req.files.resume){
-            const {resume} = req.files;
-                const resumeId = req.user.resume.public_id;
-                if(resumeId){ // remove fromt he cloudinary
-                    await cloudinary.uploader.destroy(resumeId);
-                }
-                    // creates the newResume
-              const cloudinaryResponse = await cloudinary.uploader.upload(resume.tempFilePath, { folder: "Resume" });
+        // Resume Upload
+        if (req.files?.resume) {
+            try {
+                const cloudinaryResponse = await cloudinary.uploader.upload(req.files.resume.tempFilePath, {
+                    folder: "Job_Seekers_Resume",
+                });
 
-                newUserDetails.resume = {
+                if (req.user.resume?.public_id) {
+                    await cloudinary.uploader.destroy(req.user.resume.public_id);
+                }
+
+                newUserData.resume = {
                     public_id: cloudinaryResponse.public_id,
                     url: cloudinaryResponse.secure_url,
                 };
-        }
-
-        if (req.files && req.files.profilePhoto) {
-            if (req.user.profile.profilePhoto) {
-                await cloudinary.uploader.destroy(req.user.profile.profilePhoto.public_id);
+            } catch (error) {
+                console.error("Resume update error:", error);
+                return res.status(500).json({
+                    message: "Failed to update resume",
+                    success: false,
+                });
             }
-            const uploadedPhoto = await cloudinary.uploader.upload(req.files.profilePhoto.tempFilePath, {
-                folder: "ProfilePhotos",
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(req.user.id, newUserData, { new: true });
+        res.status(200).json({
+            message: "Profile updated successfully.",
+            success: true,
+            user: updatedUser,
+        });
+
+    } catch (error) {
+        console.error("Update Profile error:", error);
+        next(error);
+    }
+};
+
+// Update Password
+export const updatePassword = async (req, res, next) => {
+    try {
+        const { oldPassword, newPassword, confirmPassword } = req.body;
+        const user = await User.findById(req.user.id).select("+password");
+
+        const isPasswordMatched = await bcrypt.compare(oldPassword, user.password);
+        if (!isPasswordMatched) {
+            return res.status(400).json({
+                message: "Old password is incorrect.",
+                success: false,
             });
-            newUserDetails["profile.profilePhoto"] = uploadedPhoto.secure_url;
         }
 
-        const userId = req.id;
-        // middleWare Authentication
-        const user = await User.findByIdAndUpdate(userId, newUserDetails, { new: true });
+        if (newPassword !== confirmPassword) {
+            return res.status(400).json({
+                message: "New password & confirm password do not match.",
+                success: false,
+            });
+        }
 
-        if(!user){
+        user.password = await bcrypt.hash(newPassword, 10);
+        await user.save();
+
+        const token = jwt.sign({ id: user._id }, process.env.SECRET_KEY, { expiresIn: "30d" });
+        res.status(200).json({
+            message: "Password updated successfully.",
+            success: true,
+            token,
+        });
+
+    } catch (error) {
+        console.error("Password update error:", error);
+        next(error);
+    }
+};
+
+// Get User Profile
+export const getUser = async (req, res, next) => {
+    try {
+
+        const user = req.user;
+        
+        if (!user) {
             return res.status(404).json({
-                message: "User not found",
-                success:false
-            })
+                message: "User not found.",
+                success: false,
+            });
         }
-        return res.status(200).json({
-            message: "Profile updated successfully",
+
+        res.status(200).json({
+            message: "User retrieved successfully.",
             success: true,
             user,
         });
 
-
-    }catch (error) {
-        console.error("Error in updateProfile function:", error);
-        return res.status(500).json({
-            message: "Something went wrong",
-            success: false,
-        });
-    }
-}
-
-
-export const updatePassword = async (req, res, next) => {
-    try {
-        // Fetch user using the userId from the decoded token (which is in req.id)
-        const user = await User.findById(req.id).select("+password");
-
-        if (!user) {
-            return res.status(404).json({ message: "User not found.", success: false });
-        }
-
-        const isPasswordMatched = await bcrypt.compare(req.body.oldPassword, user.password);
-
-        if (!isPasswordMatched) {
-            return res.status(400).json({
-                message: "Old password is incorrect.",
-                success: false
-            });
-        }
-
-        // Check if the new password and confirm password match
-        if (req.body.newPassword !== req.body.confirmPassword) {
-            return res.status(400).json({
-                message: "New password & confirm password do not match.",
-                success: false
-            });
-        }
-
-        const newHashedPassword = await bcrypt.hash(req.body.newPassword, 10);
-        
-        user.password = newHashedPassword;
-        await user.save();
-
-        return res.status(200).json({
-            message: "Password updated successfully.",
-            success: true
-        });
     } catch (error) {
-        console.error("Error updating password:", error);
-        return res.status(500).json({
-            message: "Something went wrong.",
-            success: false
-        });
+        console.error("Get user error:", error);
+        next(error);
     }
 };

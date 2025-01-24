@@ -1,163 +1,206 @@
-import { Job } from "../models/jobSchema.js";
 import { Application } from "../models/applicationSchema.js";
-import {v2 as cloudinary} from "cloudinary";
+import { Job } from "../models/jobSchema.js";
+import { v2 as cloudinary } from "cloudinary";
 
+// Post Application
+export const postApplication = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { name, email, phone, address} = req.body;
 
-export const applyForJob = async(req,res) => {
-    try{
-        const {id} = req.params;
-        let jobId = id;
-        // console.log(jobId);
-        if(!jobId) {
-            return res.status(400).json({
-                message:"jobId is required",
-                success:false 
-            });
-        }
-        const job = await Job.findById(jobId);
-        // console.log(job);
-        if (!job) {
-            return res.status(404).json({
-                message: "Job not found.",
-                success: false,
-            });
-        }
-
-        const applicant = req.user;
-        // check whether the user is already applied for this before or not;
-        const isExistingApplication = await Application.findOne({applicant: applicant._id,job:jobId});
-
-        if(isExistingApplication){
-            return res.status(400).json({
-                message:"You have already applied for this job",
-            });
-        }
-        const applicantData = {
-            applicant,
-            job:jobId
-        }
-        // resume 
-        if(req.files && req.files.resume){
-            const{resume} = req.files;
-            const uploadedResume = await cloudinary.uploader.upload(resume.tempFilePath, { folder: "Resume" });
-            applicantData.resume = {
-                public_id:uploadedResume.public_id,
-                url:uploadedResume.secure_url
-            }
-        }
-        const application = await Application.create(applicantData);
-        return res.status(200).json({
-             message:"Application is  submitted successfully",
-             success:true,
-             application,
-        });
-
-    }catch(error){
-        console.error("Error applying for job:", error);
-        res.status(500).json({
-            message: "An error occurred while applying for the job.",
-            success: false,
-        });
+    // Validation: Required fields
+    if (!name || !email || !phone || !address) {
+      return res.status(400).json({
+        message: "All fields are required.",
+        success: false,
+      });
     }
-}
-// Get all applications for a recruiter
-export const getApplicationsForJob = async(req,res) => {
-       try{
-            const recruiterJobs = await Job.find({postedBy:req.user});
-            const applications = await Application.find({ job: { $in: recruiterJobs.map(job => job._id) } })
-            .populate("applicant", "fullName email")
-            .populate("job", "title");
-            return res.status(200).json({
-                success: true,
-                applications,
-                count: applications.length,
-            });  
-       }catch(error){
-        console.error("Error fetching applications:", error);
-        res.status(500).json({
-            message: "An error occurred while fetching applications.",
-            success: false,
-        });
-       }
-}
-export const jobSeekerGetAllApplication = async(req,res) => {
-        try{
-            const applications = await Application.find({applicant:req.user})
-            .populate("job", "title companyName location");
-            return res.status(200).json({
-                success: true,
-                applications,
-                count: applications.length,
-            });
 
-        }catch(error){
-            console.error("Error fetching user's applications:", error);
-            res.status(500).json({
-                message: "An error occurred while fetching your applications.",
-                success: false,
-            });
-        }
-}
+    const jobSeekerInfo = {
+      id: req.user._id,
+      name,
+      email,
+      phone,
+      address,
+      role: "Job Seeker",
+    };
 
-export const updateApplicationStatus = async (req, res) => {
-    try {
-        const {status} = req.body;
-        const applicationId = req.params.id;
-        if(!status){
-            return res.status(400).json({
-                message:'status is required',
-                success:false
-            })
-        };
-
-        const application = await Application.findOne({_id:applicationId});
-        if(!application){
-            return res.status(404).json({
-                message:"Application not found.",
-                success:false
-            })
-        };
-
-     
-        application.status = status.toLowerCase();
-        await application.save();
-
-        return res.status(200).json({
-            message:"Status updated successfully.",
-            success:true
-        });
-
-    } catch (error) {
-        console.log(error);
+    // Check if job exists
+    const jobDetails = await Job.findById(id);
+    if (!jobDetails) {
+      return res.status(404).json({
+        message: "Job not found.",
+        success: false,
+      });
     }
+
+    // Check if already applied
+    const isAlreadyApplied = await Application.findOne({
+      "jobInfo.jobId": id,
+      "jobSeekerInfo.id": req.user._id,
+    });
+    if (isAlreadyApplied) {
+      return res.status(400).json({
+        message: "You have already applied for this job.",
+        success: false,
+      });
+    }
+
+    // Resume upload to cloudinary
+    if (req.files && req.files.resume) {
+      const { resume } = req.files;
+      try {
+        const cloudinaryResponse = await cloudinary.uploader.upload(
+          resume.tempFilePath,
+          { folder: "Job_Seekers_Resume" }
+        );
+        if (!cloudinaryResponse || cloudinaryResponse.error) {
+          return res.status(500).json({
+            message: "Failed to upload resume to cloudinary.",
+            success: false,
+          });
+        }
+        jobSeekerInfo.resume = {
+          public_id: cloudinaryResponse.public_id,
+          url: cloudinaryResponse.secure_url,
+        };
+      } catch (error) {
+        return res.status(500).json({
+          message: "Failed to upload resume",
+          success: false,
+        });
+      }
+    } else {
+      if (req.user && !req.user.resume.url) {
+        return res.status(400).json({
+          message: "Please upload your resume.",
+          success: false,
+        });
+      }
+      jobSeekerInfo.resume = {
+        public_id: req.user.resume.public_id,
+        url: req.user.resume.url,
+      };
+    }
+
+    const employerInfo = {
+      id: jobDetails.postedBy,
+      role: "Employer",
+    };
+
+    const jobInfo = {
+      jobId: id,
+      jobTitle: jobDetails.title,
+    };
+
+    const application = await Application.create({
+      jobSeekerInfo,
+      employerInfo,
+      jobInfo,
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Application submitted.",
+      application,
+    });
+  } catch (error) {
+    console.error("Error in postApplication:", error);
+    res.status(500).json({
+      message: "Something went wrong.",
+      success: false,
+    });
+  }
 };
 
+// Employer Get All Applications
+export const employerGetAllApplication = async (req, res, next) => {
+  try {
+    const { _id } = req.user;
+    const applications = await Application.find({
+      "employerInfo.id": _id,
+      "deletedBy.employer": false,
+    });
 
+    res.status(200).json({
+      success: true,
+      applications,
+    });
+  } catch (error) {
+    console.error("Error in employerGetAllApplication:", error);
+    res.status(500).json({
+      message: "Something went wrong.",
+      success: false,
+    });
+  }
+};
 
+// Job Seeker Get All Applications
+export const jobSeekerGetAllApplication = async (req, res, next) => {
+  try {
+    const { _id } = req.user;
+    const applications = await Application.find({
+      "jobSeekerInfo.id": _id,
+      "deletedBy.jobSeeker": false,
+    });
 
-export const deleteApplication = async (req,res) => {
-    try {
-        const applicationId  = req.params.id;
+    res.status(200).json({
+      success: true,
+      applications,
+    });
+  } catch (error) {
+    console.error("Error in jobSeekerGetAllApplication:", error);
+    res.status(500).json({
+      message: "Something went wrong.",
+      success: false,
+    });
+  }
+};
 
-        const application = await Application.findOne({_id:applicationId});
-        
-        if (!application) {
-            return res.status(404).json({
-                message: "Application not found.",
-                success: false,
-            });
-        }
-        await application.deleteOne();
-
-        return res.status(200).json({
-            message: "Application deleted successfully.",
-            success: true,
-        });
-    } catch (error) {
-        console.error("Error deleting application:", error);
-        res.status(500).json({
-            message: "An error occurred while deleting the application.",
-            success: false,
-        });
+// Delete Application
+export const deleteApplication = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const application = await Application.findById(id);
+    if (!application) {
+      return res.status(404).json({
+        message: "Application not found.",
+        success: false,
+      });
     }
+
+    const { role } = req.user;
+    switch (role) {
+      case "Job Seeker":
+        application.deletedBy.jobSeeker = true;
+        await application.save();
+        break;
+      case "Employer":
+        application.deletedBy.employer = true;
+        await application.save();
+        break;
+
+      default:
+        console.log("Unknown role for application deletion.");
+        break;
+    }
+
+    if (
+      application.deletedBy.employer === true &&
+      application.deletedBy.jobSeeker === true
+    ) {
+      await application.deleteOne();
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Application Deleted.",
+    });
+  } catch (error) {
+    console.error("Error in deleteApplication:", error);
+    res.status(500).json({
+      message: "Something went wrong.",
+      success: false,
+    });
+  }
 };
