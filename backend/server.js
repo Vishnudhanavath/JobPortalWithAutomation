@@ -22,17 +22,17 @@ cloudinary.v2.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-cloudinary.v2.uploader.upload(
-  "https://res.cloudinary.com/demo/image/upload/sample.jpg",
-  { folder: "test" },
-  (error, result) => {
-    if (error) {
-      console.error("Cloudinary Test Error:", error);
-    } else {
-      console.log("Cloudinary Test Success:", result.secure_url);
-    }
-  }
-);
+// cloudinary.v2.uploader.upload(
+//   "https://res.cloudinary.com/demo/image/upload/sample.jpg",
+//   { folder: "test" },
+//   (error, result) => {
+//     if (error) {
+//       console.error("Cloudinary Test Error:", error);
+//     } else {
+//       console.log("Cloudinary Test Success:", result.secure_url);
+//     }
+//   }
+// );
 
 // Initialize the server
 const app = express();
@@ -92,6 +92,6 @@ app.use("/api/v1/applications", applicationRoute);
 
 // Start the server
 app.listen(process.env.PORT, () => {
-  connectionDB(); // Connect to MongoDB
+  connectionDB(); 
   console.log(`Server is running at port: ${process.env.PORT}`);
 });

@@ -18,3 +18,5 @@ export const sendEmail = async({email,subject,message}) =>{
     }
     await transport.sendMail(options);
 }
+
+
