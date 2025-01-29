@@ -140,6 +140,7 @@ export const login = async (req, res, next) => {
 
         // Send token
         const token = jwt.sign({ id: user._id }, process.env.SECRET_KEY, { expiresIn: "30d" });
+        console.log("token: in login page: ",token);
         res.status(200).json({
             message: "User logged in successfully.",
             success: true,
@@ -268,6 +269,7 @@ export const getUser = async (req, res, next) => {
     try {
 
         const user = req.user;
+            console.log("user is not found at getuser:",user);
         
         if (!user) {
             return res.status(404).json({

@@ -7,12 +7,13 @@ import Spinner from "../../components/spinner/Spinner";
 import { FaSearch } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import "./Jobs.css";
+import { IoIosSearch } from "react-icons/io";
 
 const Jobs = () => {
   const [city, setCity] = useState("");
-  const [selectedCity, setSelectedCity] = useState("");
+  const [selectedCity, setSelectedCity] = useState("All");
   const [niche, setNiche] = useState("");
-  const [selectedNiche, setSelectedNiche] = useState("");
+  const [selectedNiche, setSelectedNiche] = useState("All");
   const [searchKeyword, setSearchKeyword] = useState("");
 
   const { jobs, loading, error } = useSelector((state) => state.jobs);
@@ -36,7 +37,6 @@ const Jobs = () => {
     }
     dispatch(fetchJobs(city, niche, searchKeyword));
   }, [dispatch, error, city, niche]);
-// this useEffect calls when dispatch occurs or error or city or niche occurs
 
   const handleSearch = () => {
     dispatch(fetchJobs(city, niche, searchKeyword));
@@ -49,6 +49,7 @@ const Jobs = () => {
     "Islamabad",
     "Rawalpindi",
     "Faisalabad",
+    "Mumbai",
     "Multan",
     "Hyderabad",
     "Quetta",
@@ -103,16 +104,14 @@ const Jobs = () => {
               onChange={(e) => setSearchKeyword(e.target.value)}
               placeholder="Search for Job"
             />
-            <button onClick={handleSearch}>Find Job</button>
-            <FaSearch />
+            <button onClick={handleSearch} className="find-button">Find Job</button>
           </div>
           <div className="wrapper">
             <div className="filter-bar">
               <div className="cities">
                 <h2>Filter Job By City</h2>
-                {cities.map((city, index) => (
-                  <div>
-                  <div key={index}>
+                {cities.map((city) => (
+                  <div key={city}>
                     <input
                       type="radio"
                       id={city}
@@ -120,16 +119,15 @@ const Jobs = () => {
                       value={city}
                       checked={selectedCity === city}
                       onChange={() => handleCityChange(city)}
-                      />
+                    />
                     <label htmlFor={city}>{city}</label>
                   </div>
-                      </div>
                 ))}
               </div>
               <div className="cities">
                 <h2>Filter Job By Niche</h2>
-                {nichesArray.map((niche, index) => (
-                  <div key={index}>
+                {nichesArray.map((niche) => (
+                  <div key={niche}>
                     <input
                       type="radio"
                       id={niche}
@@ -140,68 +138,71 @@ const Jobs = () => {
                     />
                     <label htmlFor={niche}>{niche}</label>
                   </div>
-                ))}
+                ))}                
               </div>
             </div>
             <div className="container">
               <div className="mobile-filter">
-                <select value={city} onChange={(e) => setCity(e.target.value)}>
-                  <option value="">Filter By City</option>
-                  {cities.map((city, index) => (
-                    <option value={city} key={index}>
-                      {city}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  value={niche}
-                  onChange={(e) => setNiche(e.target.value)}
-                >
-                  <option value="">Filter By Niche</option>
-                  {nichesArray.map((niche, index) => (
-                    <option value={niche} key={index}>
-                      {niche}
-                    </option>
-                  ))}
-                </select>
+              <select value={city} onChange={(e) => setCity(e.target.value)}>
+              <option value="">Filter By City</option>
+              {cities.map((city) => (
+                <option value={city} key={city}>
+                  {city}
+                </option>
+              ))}
+            </select>
+            
+            <select value={niche} onChange={(e) => setNiche(e.target.value)}>
+              <option value="">Filter By Niche</option>
+              {nichesArray.map((niche) => (
+                <option value={niche} key={niche}>
+                  {niche}
+                </option>
+              ))}
+            </select>            
               </div>
               <div className="jobs_container">
-                {jobs && jobs.length > 0 ? (jobs.map((element) => {
-                    return (
-                      <div className="card" key={element._id}>
-                        {element.hiringMultipleCandidates === "Yes" ? (
-                          <p className="hiring-multiple">
-                            Hiring Multiple Candidates
-                          </p>
-                        ) : (
-                          <p className="hiring">Hiring</p>
-                        )}
-                        <p className="title"> {element.title}</p>
-                        <p  className="job-item"> <span className="company">CompanyName: </span>{element.companyName}</p>
-                        <p  className="job-item" ><span className="location">Location: </span>{element.location}</p>
-                        <p className="job-item">
-                          <span className="salary" >Salary: </span> Rs. {element.salary}
-                        </p>
-                        <p  className="job-item">
-                          <span className="posted">Posted On: </span>{" "}
-                          {element.jobPostedOn.substring(0, 10)}
-                        </p>
-                        <div className="btn-wrapper">
-                          <Link
-                            to={`/post/application/${element._id}`}
-                          >
-                            <button className="btn">Apply Now</button>
-                          </Link>
-                        </div>
-                      </div>
-                    );
-                  })) : (
-                  /************************************************************/
-                  /* BUG No.2 */
-                  <img src="./assets/job_not_found.png" alt="job-not-found" style={{width: "100%"}}/>)
-                  /************************************************************/
-
-                  }
+              {jobs && jobs.length > 0 ? (
+                jobs.map((element) => (
+                  <div className="card" key={element._id}>
+                    {element.hiringMultipleCandidates === "Yes" ? (
+                      <p className="hiring-multiple">Hiring Multiple Candidates</p>
+                    ) : (
+                      <p className="hiring">Hiring</p>
+                    )}
+                    <p className="title">{element.title}</p>
+                    <p className="job-item">
+                      <span className="company">CompanyName: </span>
+                      {element.companyName}
+                    </p>
+                    <p className="job-item">
+                      <span className="location">Location: </span>
+                      {element.location}
+                    </p>
+                    <p className="job-item">
+                      <span className="salary">Salary: </span> Rs. {element.salary}
+                    </p>
+                    <p className="job-item">
+                      <span className="posted">Posted On: </span>
+                      {element.jobPostedOn.substring(0, 10)}
+                    </p>
+                    <div className="btn-wrapper">
+                      <Link to={`/post/application/${element._id}`}>
+                        <button className="btn">Apply Now</button>
+                      </Link>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div>
+                  <h1 className="not-found-heading">Not Found</h1>
+                  <img
+                    src="./assets/job_not_found.png"
+                    alt="job-not-found"
+                    style={{ width: "100%" }}
+                  />
+                </div>
+              )}
               </div>
             </div>
           </div>

@@ -157,7 +157,7 @@ export const fetchSingleJob = (jobId) => async (dispatch) => {
   dispatch(jobSlice.actions.requestForSingleJob());
   try {
     const response = await axios.get(
-      `https://job-portal-backend-sifx.onrender.com/api/v1/job/get/${jobId}`,
+      `http://localhost:4000/api/v1/job/get${jobId}`,
       { withCredentials: true }
     );
     dispatch(jobSlice.actions.successForSingleJob(response.data.job));
@@ -171,7 +171,7 @@ export const postJob = (data) => async (dispatch) => {
   dispatch(jobSlice.actions.requestForPostJob());
   try {
     const response = await axios.post(
-      `https://job-portal-backend-sifx.onrender.com/api/v1/job/post`,
+      `http://localhost:3000/api/v1/job/post`,
       data,
       { withCredentials: true, headers: { "Content-Type": "application/json" } }
     );
@@ -186,7 +186,7 @@ export const getMyJobs = () => async (dispatch) => {
   dispatch(jobSlice.actions.requestForMyJobs());
   try {
     const response = await axios.get(
-      `https://job-portal-backend-sifx.onrender.com/api/v1/job/getmyjobs`,
+      `http://localhost:4000/api/v1/job/getmyjobs`,
       { withCredentials: true }
     );
     dispatch(jobSlice.actions.successForMyJobs(response.data.myJobs));

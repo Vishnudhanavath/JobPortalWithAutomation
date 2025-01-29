@@ -24,7 +24,6 @@ const Login = () => {
   const handleLogin = (e) => {
     e.preventDefault();
 
-    // Form Validation
     if (!role) {
       toast.error("Please select your role.", {
         position: "bottom-right",
@@ -45,8 +44,6 @@ const Login = () => {
       });
       return;
     }
-
-    // Dispatch the login action
     dispatch(login({ role, email, password }));
   };
 

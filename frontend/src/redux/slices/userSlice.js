@@ -60,10 +60,16 @@ const userSlice = createSlice({
       state.error = null;
     },
     fetchUserSuccess(state, action) {
-      state.loading = false;
-      state.isAuthenticated = true;
-      state.user = action.payload;
-      state.error = null;
+      if (action.payload) {
+        state.loading = false;
+        state.isAuthenticated = true;
+        state.user = action.payload;
+        state.error = null;
+      } else {
+        state.loading = false;
+        state.isAuthenticated = false;
+        state.user = {};
+      }
     },
     fetchUserFailed(state, action) {
       state.loading = false;
@@ -77,8 +83,8 @@ const userSlice = createSlice({
       state.error = null;
     },
     logoutFailed(state, action) {
-      state.isAuthenticated = state.isAuthenticated;
-      state.user = state.user;
+      state.isAuthenticated = false;
+      state.user = {};
       state.error = action.payload;
     },
     clearAllErrors(state) {
@@ -90,11 +96,6 @@ const userSlice = createSlice({
 export const register = (data) => async (dispatch) => {
   dispatch(userSlice.actions.registerRequest());
   try {
-    console.log("FormData content:");
-    for (let pair of data.entries()) {
-      console.log(pair[0], pair[1]);
-    }
-
     const response = await axios.post(
       "http://localhost:4000/api/v1/user/register",
       data,
@@ -103,19 +104,55 @@ export const register = (data) => async (dispatch) => {
         headers: { "Content-Type": "multipart/form-data" },
       }
     );
-    
-    // Assuming response contains a 'message' and 'user'
     dispatch(userSlice.actions.registerSuccess(response.data));
-    dispatch(userSlice.actions.clearAllErrors());
   } catch (error) {
-    // Improved error handling for cases where error.response might be undefined
-    const errorMessage = error.response
-      ? error.response.data.message || "An error occurred"
-      : "Network error. Please try again.";
-    
-    dispatch(userSlice.actions.registerFailed(errorMessage));
+    dispatch(
+      userSlice.actions.registerFailed(
+        error.response?.data?.message || "Something went wrong."
+      )
+    );
   }
 };
+
+// export const login = (data) => async (dispatch) => {
+//   dispatch(userSlice.actions.loginRequest());
+//   try {
+//     const response = await axios.post(
+//       "http://localhost:4000/api/v1/user/login",
+//       data,
+//       {
+//         withCredentials: true,
+//         headers: { "Content-Type": "application/json" },
+//       }
+//     );
+//     dispatch(userSlice.actions.loginSuccess(response.data));
+//   } catch (error) {
+//     dispatch(
+//       userSlice.actions.loginFailed(
+//         error.response?.data?.message || "Something went wrong."
+//       )
+//     );
+//   }
+// };
+
+// export const getUser = () => async (dispatch) => {
+//   dispatch(userSlice.actions.fetchUserRequest());
+//   try {
+//     const response = await axios.get(
+//       "http://localhost:4000/api/v1/user/getuser",
+//       {
+//         withCredentials: true,
+//       }
+//     );
+//     dispatch(userSlice.actions.fetchUserSuccess(response.data.user));
+//   } catch (error) {
+//     dispatch(
+//       userSlice.actions.fetchUserFailed(
+//         error.response?.data?.message || "Failed to fetch user."
+//       )
+//     );
+//   }
+// };
 
 export const login = (data) => async (dispatch) => {
   dispatch(userSlice.actions.loginRequest());
@@ -128,34 +165,35 @@ export const login = (data) => async (dispatch) => {
         headers: { "Content-Type": "application/json" },
       }
     );
+    localStorage.setItem("token", response.data.token);
     dispatch(userSlice.actions.loginSuccess(response.data));
-    dispatch(userSlice.actions.clearAllErrors());
   } catch (error) {
-    const errorMessage = error.response
-      ? error.response.data.message || "An error occurred"
-      : "Network error. Please try again.";
-    dispatch(userSlice.actions.loginFailed(errorMessage));
+    dispatch(
+      userSlice.actions.loginFailed(
+        error.response?.data?.message || "Something went wrong."
+      )
+    );
   }
 };
 
+
 export const getUser = () => async (dispatch) => {
   dispatch(userSlice.actions.fetchUserRequest());
+  console.log("getuser requesting");
   try {
-    const response = await axios.get(
-      "http://localhost:4000/api/v1/user/getuser",
-      {
-        withCredentials: true,
-      }
-    );
+    const response = await axios.get("http://localhost:4000/api/v1/user/getuser", {
+      withCredentials: true, 
+    });
     dispatch(userSlice.actions.fetchUserSuccess(response.data.user));
-    dispatch(userSlice.actions.clearAllErrors());
   } catch (error) {
-    const errorMessage = error.response
-      ? error.response.data.message || "An error occurred"
-      : "Network error. Please try again.";
-    dispatch(userSlice.actions.fetchUserFailed(errorMessage));
+    dispatch(
+      userSlice.actions.fetchUserFailed(
+        error.response?.data?.message || "Failed to fetch user."
+      )
+    );
   }
 };
+
 
 export const logout = () => async (dispatch) => {
   try {
@@ -163,12 +201,12 @@ export const logout = () => async (dispatch) => {
       withCredentials: true,
     });
     dispatch(userSlice.actions.logoutSuccess());
-    dispatch(userSlice.actions.clearAllErrors());
   } catch (error) {
-    const errorMessage = error.response
-      ? error.response.data.message || "An error occurred"
-      : "Network error. Please try again.";
-    dispatch(userSlice.actions.logoutFailed(errorMessage));
+    dispatch(
+      userSlice.actions.logoutFailed(
+        error.response?.data?.message || "Logout failed."
+      )
+    );
   }
 };
 

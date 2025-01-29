@@ -1,10 +1,11 @@
 import React, { useEffect } from "react";
 import "./App.css";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Navbar from "./components/Navbar/Navbar";
+
 import Footer from "./components/Footer/Footer";
 import Home from "./pages/Home/Home";
-import Dashboard from "./pages/deskboard/Dashboard";
+import Navbar from "./components/navbar/Navbar";
+import Dashboard from "./pages/dashboard/Dashboard";
 import Jobs from "./pages/jobs/Jobs";
 import Login from "./pages/login/Login";
 import NotFound from "./pages/NotFound/NotFound";
@@ -16,11 +17,14 @@ import { useDispatch } from "react-redux";
 import { getUser } from "./redux/slices/userSlice";
 
 const App = () => {
-  const dispatch = useDispatch();
 
-  useEffect(() => {
-    dispatch(getUser());
-  }, []);
+const dispatch = useDispatch();
+
+useEffect(() => {
+  dispatch(getUser());
+  // console.log("geterUser calling");
+}, [dispatch]);
+
 
   return (
     <>

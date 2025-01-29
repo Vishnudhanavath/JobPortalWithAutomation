@@ -62,56 +62,57 @@
 import jwt from "jsonwebtoken";
 import { User } from "../models/userSchema.js";
 
-// CatchAsyncErrors function inline
-const catchAsyncErrors = (fn) => {
-  return (req, res, next) => {
-    fn(req, res, next).catch((error) => {
-      console.error(error); // Optionally log the error
-      res.status(500).json({
-        success: false,
-        message: error.message || "Internal Server Error",
-      });
-    });
-  };
-};
-
-// isAuthenticated middleware
-// export const isAuthenticated = catchAsyncErrors(async (req, res, next) => {
-//   const { token } = req.cookies;
-//   if (!token) {
-//     return res.status(401).json({
-//       success: false,
-//       message: "User is not authenticated.",
-//     });
-//   }
-
-//   try {
-//     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
-//     req.user = await User.findById(decoded.id);
-//     console.log(req.user);
-
-//     if (!req.user) {
-//       return res.status(404).json({
+// // CatchAsyncErrors function inline
+// const catchAsyncErrors = (fn) => {
+//   return (req, res, next) => {
+//     fn(req, res, next).catch((error) => {
+//       console.error(error); // Optionally log the error
+//       res.status(500).json({
 //         success: false,
-//         message: "User not found.",
+//         message: error.message || "Internal Server Error",
 //       });
-//     }
-
-//     next();
-//   } catch (error) {
-//     console.error(error); // Log error for debugging
-//     return res.status(401).json({
-//       success: false,
-//       message: "Invalid or expired token.",
 //     });
-//   }
-// });
+//   };
+// };
+
+// // isAuthenticated middleware
+// // export const isAuthenticated = catchAsyncErrors(async (req, res, next) => {
+// //   const { token } = req.cookies;
+// //   if (!token) {
+// //     return res.status(401).json({
+// //       success: false,
+// //       message: "User is not authenticated.",
+// //     });
+// //   }
+
+// //   try {
+// //     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+// //     req.user = await User.findById(decoded.id);
+// //     console.log(req.user);
+
+// //     if (!req.user) {
+// //       return res.status(404).json({
+// //         success: false,
+// //         message: "User not found.",
+// //       });
+// //     }
+
+// //     next();
+// //   } catch (error) {
+// //     console.error(error); // Log error for debugging
+// //     return res.status(401).json({
+// //       success: false,
+// //       message: "Invalid or expired token.",
+// //     });
+// //   }
+// // });
 
 
 // Middleware to check if the user is authenticated
 export const isAuthenticated = async (req, res, next) => {
     try {
         const { token } = req.cookies; 
+        console.log("token",token);
         if (!token) {
             return res.status(401).json({
                 success: false,
@@ -121,7 +122,7 @@ export const isAuthenticated = async (req, res, next) => {
 
         // Decode the token
         const decoded = jwt.verify(token, process.env.SECRET_KEY);
-        console.log(decoded);
+        console.log("decode",decoded);
 
         // Fetch the user from the database
         const user = await User.findById(decoded.id);

@@ -168,7 +168,6 @@ const Dashboard = () => {
                 case "My Applications":
                   return <MyApplications />;
                   break;
-
                 default:
                   <MyProfile />;
                   break;
